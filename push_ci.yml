@@ -1,0 +1,45 @@
+trigger:
+- develop
+ 
+pool:
+  vmImage: ubuntu-latest
+ 
+variables:
+  BUILDID: $(Build.BuildId)
+  DIRECTORY: $(Build.ArtifactStagingDirectory)
+ 
+steps:
+  - task: Docker@2
+    inputs:
+      containerRegistry: 'Docker Hub'
+      command: login
+ 
+  - script:
+      echo "MAJOR" $(MAJOR)
+      echo "MINOR" $(MINOR)
+      echo "BUILD ID" $(BUILDID)
+    displayName: 'Run a one line script'
+ 
+  - script:
+      docker build -t $(IMAGENAME) .
+    displayName: 'Building docker image $(IMAGENAME)'
+ 
+  - script:
+      docker image tag $(IMAGENAME) $(REGISTRY)/$(IMAGENAME):$(MAJOR).$(MINOR).$(BUILDID)
+    displayName: 'Changing image tag'
+ 
+  - script:
+      touch $(DIRECTORY)/tag.txt &&
+      echo "$(MAJOR).$(MINOR).$(BUILDID)" >> $(DIRECTORY)/tag.txt
+    displayName: 'Creating file version log'
+ 
+  - script:
+      docker image push $(REGISTRY)/$(IMAGENAME):$(MAJOR).$(MINOR).$(BUILDID)
+    displayName: 'Pushing'
+ 
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(DIRECTORY)'
+      ArtifactName: 'AdServiceDockerTag'
+      publishLocation: 'Container'
+    displayName: 'Publish pipeline artifact'
