@@ -42,4 +42,4 @@ steps:
       pathToPublish: '$(DIRECTORY)'
       ArtifactName: 'AdServiceDockerTag'
       publishLocation: 'Container'
-    displayName: 'Publish pipeline artifact
+    displayName: 'Publish pipeline artifact'
